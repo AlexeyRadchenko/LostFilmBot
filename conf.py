@@ -4,3 +4,4 @@ TOKEN = '303355444:AAH4hG7R9ySLF5ySoQeb7Y6o_tu5rIaGqw8'
 SOCKS_USER = 'lfbot'
 SOCKS_PASS = 'nDeugYzbeM4h'
 SOCKS_URL = 'socks5://188.166.167.217:7953/'
+"""ignore"""
