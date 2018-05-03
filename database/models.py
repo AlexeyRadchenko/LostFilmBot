@@ -31,6 +31,28 @@ class LastTVShow(Base):
     jpg = Column(String)
     date = Column(Date)
     season = Column(String)
+    tv_show_link = Column(String)
+    episode_link = Column(String)
+
+    def __init__(self, title_ru, title_en, jpg, date, season, tv_show_link, episode_link):
+        self.title_en = title_en
+        self.title_ru = title_ru
+        self.jpg = jpg
+        self.date = date
+        self.season = season
+        self.tv_show_link = tv_show_link
+        self.episode_link = episode_link
+
+    def __repr__(self):
+        return "<TVShow('%s','%s', '%s', '%s', '%s', '%s', '%s')>" % (
+            self.title_ru,
+            self.title_en,
+            self.jpg,
+            self.date,
+            self.season,
+            self.tv_show_link,
+            self.episode_link
+        )
 
 
 class UserProfile(Base):
