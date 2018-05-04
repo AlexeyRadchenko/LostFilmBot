@@ -44,15 +44,16 @@ class LastTVShow(Base):
         self.episode_link = episode_link
 
     def __repr__(self):
-        return "<TVShow('%s','%s', '%s', '%s', '%s', '%s', '%s')>" % (
-            self.title_ru,
-            self.title_en,
-            self.jpg,
-            self.date,
-            self.season,
-            self.tv_show_link,
-            self.episode_link
-        )
+        return '{"title_ru": "%s", "title_en": "%s", "jpg": "%s", "date": "%s", "season": "%s", \
+               "tv_show_link": "%s", "episode_link": "%s"}' % (
+                    self.title_ru,
+                    self.title_en,
+                    self.jpg,
+                    self.date,
+                    self.season,
+                    self.tv_show_link,
+                    self.episode_link
+                )
 
 
 class UserProfile(Base):
