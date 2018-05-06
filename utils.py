@@ -30,6 +30,14 @@ def build_menu(buttons,
 #print(notification(datetime(2018, 5, 4, 14, 53, 18)))
 #now = datetime.now(timezone('Europe/Yekaterinburg'))
 #print(now)
-#print(notification(datetime.now(tz=timezone('Europe/Amsterdam'))))
+start="22:00:00"
+End="03:00:00"
+#t = datetime.strptime("3:30:00","%H:%M:%S").time()
+t=datetime.now(timezone('Asia/Yekaterinburg')).time()
+dt=datetime.strptime(start,"%H:%M:%S").time()
+dp=datetime.strptime(End,"%H:%M:%S").time()
+
+#print(notification(datetime.now(tz=timezone('Asia/Yekaterinburg'))))
+print(t>dt, t<dp )
 
 

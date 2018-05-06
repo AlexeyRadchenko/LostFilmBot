@@ -60,9 +60,26 @@ class UserProfile(Base):
     __tablename__ = 'user_profile'
     id = Column(Integer, primary_key=True)
     chat_id = Column(BigInteger)
-    when_check = Column(DateTime)
+    when_check = Column(DateTime, nullable=True)
     notify_sound = Column(Boolean)
-    time_notify_start = Column(Time)
-    time_notify_stop = Column(Time)
+    time_notify_start = Column(Time, nullable=True)
+    time_notify_stop = Column(Time, nullable=True)
     spy = Column(Boolean)
+    timezone = Column(String, nullable=True)
 
+    def __init__(self, chat_id, notify_sound, spy):
+        self.chat_id = chat_id
+        self.notify_sound = notify_sound
+        self.spy = spy
+
+    def __repr__(self):
+        return '{"chat_id": "%s", "when_check": %s, "notify_sound": "%s", "time_notify_start": "%s", ' \
+               '"time_notify_stop": "%s", "spy": "%s", "timezone": "%s"}' % (
+                    self.chat_id,
+                    self.when_check,
+                    self.notify_sound,
+                    self.time_notify_start,
+                    self.time_notify_stop,
+                    self.spy,
+                    self.timezone
+                )

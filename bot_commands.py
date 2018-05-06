@@ -1,35 +1,93 @@
 from parser.parser import LostFilmParser
 from database.database_init import engine_selector
-from database.models import LastTVShow
+from database.models import LastTVShow, UserProfile
 import dateparser, json, conf
 from utils import get_new_episode, build_menu, flag
-from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
+from emoji import emojize
+from datetime import datetime
 engine, Session = engine_selector()
 session = Session()
 
 
 def start(bot, update):
     username = update.message.chat.first_name
-    bot.send_message(chat_id=update.message.chat_id, text=conf.START_TEXT.format(username))
+    user_db = session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).one_or_none()
+    if not user_db:
+        db_object = UserProfile(
+            chat_id=update.message.chat_id,
+            notify_sound=True,
+            spy=False
+        )
+        session.add(db_object)
+        session.commit()
+        status = emojize(':no_entry_sign:', use_aliases=True)
+    else:
+        if user_db.spy:
+            status = emojize(":white_check_mark:", use_aliases=True)
+        else:
+            status = emojize(':no_entry_sign:', use_aliases=True)
+    button_list = [
+        [KeyboardButton('Новинки'), KeyboardButton('Уведомления ' + status)],
+        [KeyboardButton('Настройка уведомлений')],
+        [KeyboardButton('Звук уведомлений(on)')]
+    ]
+    #reply_markup = ReplyKeyboardMarkup(build_menu(button_list, n_cols=2), resize_keyboard=True)
+    reply_markup = ReplyKeyboardMarkup(button_list, resize_keyboard=True)
+    bot.send_message(chat_id=update.message.chat_id, text=conf.START_TEXT.format(username), reply_markup=reply_markup)
 
 
 def help(bot, update):
+    print(update.message)
     bot.send_message(chat_id=update.message.chat_id, text=conf.HELP_TEXT)
 
 
 def settings(bot, update):
-    button_list = [
-        KeyboardButton("cola1",),
-        KeyboardButton("col2"),
-        KeyboardButton("row 2")
-    ]
-    #reply_markup = InlineKeyboardMarkup(build_menu(button_list, n_cols=2))
-    reply_markup = ReplyKeyboardMarkup(build_menu(button_list, n_cols=2))
-    bot.send_message(chat_id=update.message.chat_id, text="Custom Keyboard Test", reply_markup=reply_markup)
+    """button_list = [
+        KeyboardButton(""),
+        KeyboardButton("Следить"),
+        KeyboardButton("Стоп"),
+        KeyboardButton('Настройка уведомлений')
+    ]"""
+    button_list = [KeyboardButton(timezone) for timezone in conf.PY_TIMEZONES_RU['timezones']]
+    button_list.append(KeyboardButton('Меню'))
+    #reply_markup = InlineKeyboardMarkup(build_menu(button_list, n_cols=3))
+    reply_markup = ReplyKeyboardMarkup(build_menu(button_list, n_cols=3), resize_keyboard=True)
+    bot.send_message(chat_id=update.message.chat_id, text="Выберите часовой пояс", reply_markup=reply_markup)
+
+
+def timezone_set(bot, update):
+    reply_markup = ReplyKeyboardRemove()
+    print(update.message.text)
+    bot.send_message(chat_id=update.message.chat_id, text="Укажите время когда сообщения должны быть без звука в 24-х часовом формате, пример 23-8 (с 23 ночи до 8 часов сообения будут беззвучными)", reply_markup=reply_markup)
+
+
+def silent_time(bot, update):
+    print(update.message.text)
+    bot.send_message(chat_id=update.message.chat_id, text="Время установленно")
+
 
 def check(bot, update):
     episodes_in_request = LostFilmParser().get_new_shows_episodes()
     episodes_in_db = session.query(LastTVShow).all()
+    user_db = session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).one_or_none()
+    if not user_db.__dict__['when_check']:
+        session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).update(
+            {
+                'when_check': datetime.now()
+            }
+        )
+    else:
+        if user_db.__dict__['timezone']:
+            pass
+
+    """    
+    session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).update(
+        {
+            'when_check': datetime.now()
+        }
+    )
+    """
     if not episodes_in_db:
         for episode in episodes_in_request:
             caption = conf.EPISODE_CAPTION.format(
