@@ -2,7 +2,10 @@ from conf import TOKEN, SOCKS_USER, SOCKS_PASS, SOCKS_URL, UPDATER_TASK_TIMER
 import logging
 from telegram.ext import Updater
 from telegram.ext import CommandHandler, RegexHandler
-from bot_commands import start, help, check, spy, updater_task, settings, timezone_set, silent_time
+from bot_commands import (start, help, check,
+                          spy, updater_task, settings,
+                          timezone_set, silent_time, notifications_timer_on,
+                          notifications_timer_off, set_notifications)
 
 
 def main():
@@ -19,14 +22,19 @@ def main():
 
     start_handler = CommandHandler('start', start)
     help_handler = CommandHandler('help', help)
-    settings_handler =CommandHandler('settings', settings)
+    settings_handler = CommandHandler('settings', settings)
     check_handler = CommandHandler('check', check)
     spy_handler = CommandHandler('spy', spy)
 
     check_reg_handler = RegexHandler(r'Новинки', check)
-    settings_reg_handler = RegexHandler(r'Настройка уведомлений', settings)
+    settings_reg_handler = RegexHandler(r'Настройка расписания уведомлений', settings)
     timezone_set_reg_handler = RegexHandler(r'Europe/\w+|Asia/\w+', timezone_set)
     silent_time_reg_handler = RegexHandler(r'\d{1,2}-\d{1,2}', silent_time)
+    spy_reg_handler = RegexHandler(r'\bУведомления\s', spy)
+    main_menu_reg_handler = RegexHandler(r'Меню', start)
+    notifications_tm_on = RegexHandler(r'Включить расписание', notifications_timer_on)
+    notifications_tm_off = RegexHandler(r'Выключить расписание', notifications_timer_off)
+    notifications_tm_set = RegexHandler(r'Настроить расписание|Изменить настройки', set_notifications)
 
     dispatcher.add_handler(start_handler)
     dispatcher.add_handler(help_handler)
@@ -37,6 +45,11 @@ def main():
     dispatcher.add_handler(timezone_set_reg_handler)
     dispatcher.add_handler(silent_time_reg_handler)
     dispatcher.add_handler(check_reg_handler)
+    dispatcher.add_handler(spy_reg_handler)
+    dispatcher.add_handler(main_menu_reg_handler)
+    dispatcher.add_handler(notifications_tm_on)
+    dispatcher.add_handler(notifications_tm_off)
+    dispatcher.add_handler(notifications_tm_set)
 
     updater.start_polling()
 

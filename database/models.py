@@ -66,20 +66,23 @@ class UserProfile(Base):
     time_notify_stop = Column(Time, nullable=True)
     spy = Column(Boolean)
     timezone = Column(String, nullable=True)
+    notify_timer = Column(Boolean)
 
-    def __init__(self, chat_id, notify_sound, spy):
+    def __init__(self, chat_id, notify_sound, spy, notify_timer):
         self.chat_id = chat_id
         self.notify_sound = notify_sound
         self.spy = spy
+        self.notify_timer = notify_timer
 
     def __repr__(self):
         return '{"chat_id": "%s", "when_check": %s, "notify_sound": "%s", "time_notify_start": "%s", ' \
-               '"time_notify_stop": "%s", "spy": "%s", "timezone": "%s"}' % (
+               '"time_notify_stop": "%s", "spy": "%s", "timezone": "%s", "notify_timer": "%s"}' % (
                     self.chat_id,
                     self.when_check,
                     self.notify_sound,
                     self.time_notify_start,
                     self.time_notify_stop,
                     self.spy,
-                    self.timezone
+                    self.timezone,
+                    self.notify_timer
                 )
