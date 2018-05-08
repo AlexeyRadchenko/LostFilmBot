@@ -13,9 +13,6 @@ engine, Session = engine_selector()
 session = Session()
 
 
-
-
-
 def start(bot, update):
     username = update.message.chat.first_name
     user_db = session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).one_or_none()
@@ -55,22 +52,17 @@ def settings(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=status, reply_markup=reply_markup)
 
 
-def notifications_timer_on(bot, update):
+def notifications_timer_on_off(bot, update):
     user = session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).one_or_none()
     if not user.notify_timer:
         user.notify_timer = True
-        session.commit()
-    reply_markup = main_menu_keyboard(user)
-    bot.send_message(chat_id=update.message.chat_id, text='Расписание включено', reply_markup=reply_markup)
-
-
-def notifications_timer_off(bot, update):
-    user = session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).one_or_none()
-    if user.notify_timer:
+        reply_markup = main_menu_keyboard(user)
+        bot.send_message(chat_id=update.message.chat_id, text='Расписание включено', reply_markup=reply_markup)
+    else:
         user.notify_timer = False
-        session.commit()
-    reply_markup = main_menu_keyboard(user)
-    bot.send_message(chat_id=update.message.chat_id, text='Расписание выключено', reply_markup=reply_markup)
+        reply_markup = main_menu_keyboard(user)
+        bot.send_message(chat_id=update.message.chat_id, text='Расписание выключено', reply_markup=reply_markup)
+    session.commit()
 
 
 def set_notifications(bot, update):

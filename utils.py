@@ -60,7 +60,6 @@ def main_menu_keyboard(user_db, update=None, session=None):
         else:
             status_timer = emojize(':no_entry_sign:', use_aliases=True)
 
-        print(status_notifications, status_timer, status_sound)
     button_list = [
         [KeyboardButton('Новинки'), KeyboardButton('Уведомления ' + status_notifications)],
         [KeyboardButton('Настройка расписания уведомлений ' + status_timer)],
