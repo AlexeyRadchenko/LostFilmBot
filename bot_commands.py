@@ -1,13 +1,19 @@
 from parser.parser import LostFilmParser
 from database.database_init import engine_selector
 from database.models import LastTVShow, UserProfile
-import dateparser, json, conf
+import dateparser
+import conf
 from utils import get_new_episode, build_menu, flag, main_menu_keyboard, user_list_send, hour_format_check
 from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
 from datetime import datetime
 from re import search
+
+
 engine, Session = engine_selector()
 session = Session()
+
+
+
 
 
 def start(bot, update):
@@ -20,6 +26,7 @@ def start(bot, update):
 def help(bot, update):
     print(update.message)
     bot.send_message(chat_id=update.message.chat_id, text=conf.HELP_TEXT)
+
 
 def settings(bot, update):
     status, reply_markup = None, None
@@ -50,16 +57,18 @@ def settings(bot, update):
 
 def notifications_timer_on(bot, update):
     user = session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).one_or_none()
-    user.notify_timer = True
-    session.commit()
+    if not user.notify_timer:
+        user.notify_timer = True
+        session.commit()
     reply_markup = main_menu_keyboard(user)
     bot.send_message(chat_id=update.message.chat_id, text='Расписание включено', reply_markup=reply_markup)
 
 
 def notifications_timer_off(bot, update):
     user = session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).one_or_none()
-    user.notify_timer = False
-    session.commit()
+    if user.notify_timer:
+        user.notify_timer = False
+        session.commit()
     reply_markup = main_menu_keyboard(user)
     bot.send_message(chat_id=update.message.chat_id, text='Расписание выключено', reply_markup=reply_markup)
 
@@ -113,6 +122,20 @@ def silent_time(bot, update):
         bot.send_message(chat_id=update.message.chat_id, text=f'Расписание включено. Звук автоматических уведомлений отключен с {start_time.hour}:00 до {stop_time.hour}:00', reply_markup=reply_markup)
     else:
         bot.send_message(chat_id=update.message.chat_id, text='Неверный формат /help')
+
+
+def sound_notifications_mute(bot, update):
+    user = session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).one_or_none()
+    if user.notify_sound:
+        user.notify_sound = False
+        session.commit()
+        reply_markup = main_menu_keyboard(user)
+        bot.send_message(chat_id=update.message.chat_id, text='Звук отключен', reply_markup=reply_markup)
+    else:
+        user.notify_sound = True
+        session.commit()
+        reply_markup = main_menu_keyboard(user)
+        bot.send_message(chat_id=update.message.chat_id, text='Звук включен', reply_markup=reply_markup)
 
 
 def check(bot, update):
@@ -186,8 +209,8 @@ def spy(bot, update):
 
 def updater_task(bot, job):
     new_episodes = LostFilmParser().get_new_shows_episodes()
-    episodes_in_db = session.query(LastTVShow).all()
-    user_list = session.query(UserProfile).filter(UserProfile.spy).all()
+    updater_db_session = Session()
+    episodes_in_db = updater_db_session.query(LastTVShow).all()
     set_episodes_in_db = set([episode.__dict__['title_ru'] for episode in episodes_in_db])
     set_all_new_episodes = set([episode['title_ru'] for episode in new_episodes])
     diff_set_old_episodes = set_episodes_in_db - set_all_new_episodes
@@ -198,8 +221,8 @@ def updater_task(bot, job):
                 new_episode = get_new_episode(new_episode_title, new_episodes)
                 caption = conf.EPISODE_CAPTION.format(
                     new_episode['title_ru'], new_episode['season'], new_episode['tv_show_link'])
-                user_list_send(bot, new_episode['jpg'], caption, user_list)
-                session.query(LastTVShow).filter(LastTVShow.title_ru == old_episode).\
+                user_list_send(bot, new_episode['jpg'], caption, updater_db_session)
+                updater_db_session.query(LastTVShow).filter(LastTVShow.title_ru == old_episode).\
                     update({
                         'title_en': new_episode['title_en'],
                         'title_ru': new_episode['title_ru'],
@@ -209,11 +232,5 @@ def updater_task(bot, job):
                         'tv_show_link': new_episode['tv_show_link'],
                         'episode_link': new_episode['episode_link'],
                     }, synchronize_session=False)
-        session.commit()
-        print('update epsiodes')
-    else:
-        bot.send_message(chat_id=219915673, text='Нет новых серий', disable_notification=True)
-        print('Not new episodes')
-#print(set([json.loads(episode)['title_ru'] for episode in episodes_in_db]))
-#print(json.loads(episodes_in_db))
-#print(new_episodes[0])
+        updater_db_session.commit()
+    Session.remove()

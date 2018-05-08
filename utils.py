@@ -1,11 +1,10 @@
 from datetime import datetime
 from pytz import timezone
-import pytz
-
 from database.database_init import engine_selector
 from database.models import UserProfile
 from emoji import emojize
 from telegram import ReplyKeyboardMarkup, KeyboardButton
+from telegram.error import Unauthorized
 OFFSET = 127462 - ord('A')
 
 def flag(code):
@@ -46,7 +45,6 @@ def main_menu_keyboard(user_db, update=None, session=None):
         status_sound = emojize(":white_check_mark:", use_aliases=True)
         status_timer = emojize(':no_entry_sign:', use_aliases=True)
     else:
-        print(user_db.spy, user_db.notify_sound)
         if user_db.spy:
             status_notifications = emojize(":white_check_mark:", use_aliases=True)
         else:
@@ -55,19 +53,19 @@ def main_menu_keyboard(user_db, update=None, session=None):
         if user_db.notify_sound:
             status_sound = emojize(":white_check_mark:", use_aliases=True)
         else:
-            status_sound = status_notifications = emojize(':no_entry_sign:', use_aliases=True)
+            status_sound = emojize(':no_entry_sign:', use_aliases=True)
 
         if user_db.notify_timer:
             status_timer = emojize(":white_check_mark:", use_aliases=True)
         else:
-            status_timer = status_notifications = emojize(':no_entry_sign:', use_aliases=True)
+            status_timer = emojize(':no_entry_sign:', use_aliases=True)
 
+        print(status_notifications, status_timer, status_sound)
     button_list = [
         [KeyboardButton('Новинки'), KeyboardButton('Уведомления ' + status_notifications)],
         [KeyboardButton('Настройка расписания уведомлений ' + status_timer)],
         [KeyboardButton('Звук уведомлений ' + status_sound)]
     ]
-    #reply_markup = ReplyKeyboardMarkup(build_menu(button_list, n_cols=2), resize_keyboard=True)
     return ReplyKeyboardMarkup(button_list, resize_keyboard=True)
 
 def sound_check(user):
@@ -83,16 +81,23 @@ def hour_format_check(hour):
     else:
         return False
 
-def user_list_send(bot, photo, caption, users_list=None):
+
+def user_list_send(bot, photo, caption, session):
+    users_list = session.query(UserProfile).filter(UserProfile.spy).all()
     for user in users_list:
-        if user.notify_sound or user.notify_timer:
-            now = datetime.now(timezone(user.timezone)).time()
-            if now >= user.time_notify_start or now <= user.time_notify_stop:
-                bot.sendPhoto(chat_id=user.chat_id, photo=photo, caption=caption, disable_notification=True)
+        try:
+            if user.notify_sound or user.notify_timer:
+                now = datetime.now(timezone(user.timezone)).time()
+                if now >= user.time_notify_start or now <= user.time_notify_stop:
+                    bot.sendPhoto(chat_id=user.chat_id, photo=photo, caption=caption, disable_notification=True)
+                else:
+                    bot.sendPhoto(chat_id=user.chat_id, photo=photo, caption=caption)
             else:
-                bot.sendPhoto(chat_id=user.chat_id, photo=photo, caption=caption)
-        else:
-            bot.sendPhoto(chat_id=user.chat_id, photo=photo, caption=caption, disable_notification=True)
+                bot.sendPhoto(chat_id=user.chat_id, photo=photo, caption=caption, disable_notification=True)
+        except Unauthorized:
+            session.query(UserProfile).filter(UserProfile.chat_id == user.chat_id).delete()
+            session.commit()
+
 
 def user_list_send_test():
     engine, Session = engine_selector()
@@ -121,6 +126,5 @@ dp=datetime.strptime(End,"%H:%M:%S").time()
 
 #print(notification(datetime.now(tz=timezone('Asia/Yekaterinburg'))))
 print(t>dt, t<dp )"""
-user_list_send_test()
 
 
