@@ -7,7 +7,7 @@ Telegram bot for tv shows on LostFilm.tv
 
 Telegram: [@LoFi_bot](hhtps://t.me/LoFi_bot)
 ---------
-[bot_screen]
+![Screen][bot_screen]
 
 [bot_screen]: https://i.imgur.com/GxitKci.jpg
 
