@@ -65,12 +65,3 @@ class LostFilmParser:
             sleep(1)
             request_result = self.load_part_list(step)
         return shows_list
-
-"""
-parser = LostFilmParser()
-res = parser.get_tv_shows_list()
-print(res[0], len(res))
-parser = LostFilmParser()
-fast_check = parser.get_new_shows_episodes()
-print(fast_check)
-"""

@@ -1,10 +1,11 @@
+import dateparser
+import conf
+from emoji import emojize
 from parser.parser import LostFilmParser
 from database.database_init import engine_selector
 from database.models import LastTVShow, UserProfile
-import dateparser
-import conf
-from utils import get_new_episode, build_menu, flag, main_menu_keyboard, user_list_send, hour_format_check
-from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardRemove
+from utils import get_new_episode, build_menu, main_menu_keyboard, user_list_send, hour_format_check
+from telegram import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from datetime import datetime
 from re import search
 
@@ -17,19 +18,27 @@ def start(bot, update):
     username = update.message.chat.first_name
     user_db = session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).one_or_none()
     reply_markup = main_menu_keyboard(user_db, update=update, session=session)
-    bot.send_message(chat_id=update.message.chat_id, text=conf.START_TEXT.format(username), reply_markup=reply_markup)
+    message_text = conf.START_TEXT.format(username)
+    bot.send_message(chat_id=update.message.chat_id, text=message_text, reply_markup=reply_markup)
 
 
-def help(bot, update):
-    print(update.message)
-    bot.send_message(chat_id=update.message.chat_id, text=conf.HELP_TEXT)
+def bot_help(bot, update):
+    bot.send_message(chat_id=update.message.chat_id, text=conf.HELP_TEXT['main'])
 
 
 def settings(bot, update):
     status, reply_markup = None, None
     user = session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).one_or_none()
     if user.notify_timer:
-        status = f'Расписание включено: часовой пояс {user.timezone}, звук уведомлений отключен с {user.time_notify_start} до {user.time_notify_stop}'
+        status = 'Расписание включено {0}\n' \
+                 'Часовой пояс \b{1}\b\n' \
+                 'Звук автоуведомлений отключен с {2} до {3}'\
+            .format(
+                emojize(":white_check_mark:", use_aliases=True),
+                user.timezone,
+                user.time_notify_start,
+                user.time_notify_stop
+            )
         button_list = [
             [KeyboardButton("Выключить расписание"), KeyboardButton("Изменить настройки")],
             [KeyboardButton("Меню")]
@@ -43,7 +52,15 @@ def settings(bot, update):
         ]
         reply_markup = ReplyKeyboardMarkup(build_menu(button_list, n_cols=2), resize_keyboard=True)
     elif not user.notify_timer:
-        status = f'Раписание выключено: часовой пояс {user.timezone}, звук уведомлений отключен с {user.time_notify_start} до {user.time_notify_stop}'
+        status = 'Раписание выключено {0} \n' \
+                 'Часовой пояс \b{1}\b\n' \
+                 'Звук автоуведомлений отключен с {2} до {3}'\
+            .format(
+                emojize(':no_entry_sign:', use_aliases=True),
+                user.timezone,
+                user.time_notify_start,
+                user.time_notify_stop
+            )
         button_list = [
             [KeyboardButton("Включить расписание"), KeyboardButton("Изменить настройки")],
             [KeyboardButton("Меню")]
@@ -85,7 +102,7 @@ def timezone_set(bot, update):
             synchronize_session=False
         )
         reply_markup = ReplyKeyboardRemove()
-        bot.send_message(chat_id=update.message.chat_id, text="Укажите время когда сообщения должны быть без звука в 24-х часовом формате, пример 23-8 (с 23 ночи до 8 часов сообения будут беззвучными)", reply_markup=reply_markup)
+        bot.send_message(chat_id=update.message.chat_id, text=conf.HELP_TEXT['timezone'], reply_markup=reply_markup)
     else:
         bot.send_message(chat_id=update.message.chat_id, text='Неверный формат часового пояса')
 
@@ -102,16 +119,16 @@ def silent_time(bot, update):
         user.time_notify_start = start_time
         user.time_notify_stop = stop_time
         user.notify_timer = True
-        """session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).update(
-            {
-                'time_notify_start': start_time,
-                'time_notify_stop': stop_time
-            },
-            synchronize_session=False
-        )"""
         session.commit()
         reply_markup = main_menu_keyboard(user)
-        bot.send_message(chat_id=update.message.chat_id, text=f'Расписание включено. Звук автоматических уведомлений отключен с {start_time.hour}:00 до {stop_time.hour}:00', reply_markup=reply_markup)
+        message_text = 'Расписание включено {0} \n' \
+                       'Звук автоматических уведомлений отключен с {1}:00 до {2}:00'\
+            .format(
+                emojize(":white_check_mark:", use_aliases=True),
+                start_time.hour,
+                stop_time.hour
+            )
+        bot.send_message(chat_id=update.message.chat_id, text=message_text, reply_markup=reply_markup)
     else:
         bot.send_message(chat_id=update.message.chat_id, text='Неверный формат /help')
 
@@ -180,10 +197,11 @@ def check(bot, update):
         for episode in episodes_in_request:
             caption = conf.EPISODE_CAPTION.format(
                 episode['title_ru'], episode['season'], episode['tv_show_link'])
-            bot.sendPhoto(chat_id=update.message.chat_id, photo=episode['jpg'], caption=caption, disable_notification=True)
-        bot.send_message(chat_id=update.message.chat_id, text=conf.AFTER_CHECK_TEXT, disable_notification=True)
+            bot.sendPhoto(chat_id=update.message.chat_id, photo=episode['jpg'], caption=caption)
+        bot.send_message(chat_id=update.message.chat_id, text=conf.AFTER_CHECK_TEXT)
     else:
-        bot.send_message(chat_id=update.message.chat_id, text='Проверить новинки через 1 минуту', disable_notification=True)
+        bot.send_message(
+            chat_id=update.message.chat_id, text='Новинкок нет, проверте через 1 минуту')
 
 
 def spy(bot, update):
@@ -191,11 +209,15 @@ def spy(bot, update):
     if not user.spy:
         user.spy = True
         reply_markup = main_menu_keyboard(user)
-        bot.send_message(chat_id=update.message.chat_id, text='Теперь бот будет автоматически уведомлять вас', reply_markup=reply_markup, disable_notification=True)
+        bot.send_message(
+            chat_id=update.message.chat_id,
+            text='Теперь бот будет автоматически будет уведомлять Вас о выходе новых эпизодов',
+            reply_markup=reply_markup,
+        )
     else:
         user.spy = False
         reply_markup = main_menu_keyboard(user)
-        bot.send_message(chat_id=update.message.chat_id, text='Уведомления отключены', reply_markup=reply_markup, disable_notification=True)
+        bot.send_message(chat_id=update.message.chat_id, text='Автоуведомления отключены', reply_markup=reply_markup)
     session.commit()
 
 

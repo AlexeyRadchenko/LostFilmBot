@@ -1,5 +1,4 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, Date, Boolean, BigInteger, DateTime, Time
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, String, Integer, Date, Boolean, BigInteger, DateTime, Time
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -45,15 +44,15 @@ class LastTVShow(Base):
 
     def __repr__(self):
         return '{"title_ru": "%s", "title_en": "%s", "jpg": "%s", "date": "%s", "season": "%s", \
-               "tv_show_link": "%s", "episode_link": "%s"}' % (
-                    self.title_ru,
-                    self.title_en,
-                    self.jpg,
-                    self.date,
-                    self.season,
-                    self.tv_show_link,
-                    self.episode_link
-                )
+        "tv_show_link": "%s", "episode_link": "%s"}' % (
+            self.title_ru,
+            self.title_en,
+            self.jpg,
+            self.date,
+            self.season,
+            self.tv_show_link,
+            self.episode_link
+        )
 
 
 class UserProfile(Base):
@@ -75,14 +74,14 @@ class UserProfile(Base):
         self.notify_timer = notify_timer
 
     def __repr__(self):
-        return '{"chat_id": "%s", "when_check": %s, "notify_sound": "%s", "time_notify_start": "%s", ' \
-               '"time_notify_stop": "%s", "spy": "%s", "timezone": "%s", "notify_timer": "%s"}' % (
-                    self.chat_id,
-                    self.when_check,
-                    self.notify_sound,
-                    self.time_notify_start,
-                    self.time_notify_stop,
-                    self.spy,
-                    self.timezone,
-                    self.notify_timer
-                )
+        return '{"chat_id": "%s", "when_check": "%s", "notify_sound": "%s", "time_notify_start": "%s", \
+        "time_notify_stop": "%s", "spy": "%s", "timezone": "%s", "notify_timer": "%s"}' % (
+            self.chat_id,
+            self.when_check,
+            self.notify_sound,
+            self.time_notify_start,
+            self.time_notify_stop,
+            self.spy,
+            self.timezone,
+            self.notify_timer
+        )

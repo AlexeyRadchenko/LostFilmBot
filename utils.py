@@ -1,24 +1,24 @@
 from datetime import datetime
 from pytz import timezone
-from database.database_init import engine_selector
 from database.models import UserProfile
 from emoji import emojize
 from telegram import ReplyKeyboardMarkup, KeyboardButton
 from telegram.error import Unauthorized
+
+
 OFFSET = 127462 - ord('A')
+
 
 def flag(code):
     code = code.upper()
     return chr(ord(code[0]) + OFFSET) + chr(ord(code[1]) + OFFSET)
+
 
 def get_new_episode(episode_title, episodes):
     for i, episode in enumerate(episodes, start=0):
         if episode['title_ru'] == episode_title:
             return episode
 
-
-def notification(usertime):
-    return usertime
 
 def build_menu(buttons,
                n_cols,
@@ -30,6 +30,7 @@ def build_menu(buttons,
     if footer_buttons:
         menu.append(footer_buttons)
     return menu
+
 
 def main_menu_keyboard(user_db, update=None, session=None):
     if not user_db:
@@ -67,12 +68,14 @@ def main_menu_keyboard(user_db, update=None, session=None):
     ]
     return ReplyKeyboardMarkup(button_list, resize_keyboard=True)
 
+
 def sound_check(user):
     if not user.notify_sound:
         return False
     else:
         if user.time_notify_start and user.timezone:
             pass
+
 
 def hour_format_check(hour):
     if 0 <= int(hour) < 24:
@@ -96,34 +99,3 @@ def user_list_send(bot, photo, caption, session):
         except Unauthorized:
             session.query(UserProfile).filter(UserProfile.chat_id == user.chat_id).delete()
             session.commit()
-
-
-def user_list_send_test():
-    engine, Session = engine_selector()
-    session = Session()
-    db_object = session.query(UserProfile).filter(UserProfile.chat_id == 219915673).one_or_none()
-    users_list = [db_object]
-    for user in users_list:
-        if user.notify_sound or user.notify_timer:
-            now = datetime.now(timezone(user.timezone)).time()
-            if now >= user.time_notify_start or now <= user.time_notify_stop:
-                print('tiho', now >= user.time_notify_start or now <= user.time_notify_stop)
-            else:
-                print('gromko',now >= user.time_notify_start or now <= user.time_notify_stop)
-        else:
-            print('sound off')
-
-#print(notification(datetime(2018, 5, 4, 14, 53, 18)))
-#now = datetime.now(timezone('Europe/Yekaterinburg'))
-#print(now)
-"""start="5:00:00"
-End="03:00:00"
-t = datetime.strptime("4:30:00","%H:%M:%S").time()
-#t=datetime.now(timezone('Asia/Yekaterinburg')).time()
-dt=datetime.strptime(start,"%H:%M:%S").time()
-dp=datetime.strptime(End,"%H:%M:%S").time()
-
-#print(notification(datetime.now(tz=timezone('Asia/Yekaterinburg'))))
-print(t>dt, t<dp )"""
-
-

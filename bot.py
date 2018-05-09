@@ -2,7 +2,7 @@ from conf import TOKEN, SOCKS5_ARGS, UPDATER_TASK_TIMER
 import logging
 from telegram.ext import Updater
 from telegram.ext import CommandHandler, RegexHandler
-from bot_commands import (start, help, check,
+from bot_commands import (start, bot_help, check,
                           spy, updater_task, settings,
                           timezone_set, silent_time, notifications_timer_on_off,
                           set_notifications, sound_notifications_mute)
@@ -28,10 +28,11 @@ def main():
 
     command_handlers = [
         CommandHandler('start', start),
-        CommandHandler('help', help),
+        CommandHandler('help', bot_help),
         CommandHandler('settings', settings),
         CommandHandler('check', check),
-        CommandHandler('spy', spy)
+        CommandHandler('spy', spy),
+        CommandHandler('sound', sound_notifications_mute)
     ]
 
     regexp_command_handlers = [
