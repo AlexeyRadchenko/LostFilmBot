@@ -1,5 +1,6 @@
 import dateparser
 import conf
+from time import sleep
 from emoji import emojize
 from parser.parser import LostFilmParser
 from database.database_init import engine_selector
@@ -163,7 +164,6 @@ def check(bot, update):
         last_check = user_db.__dict__['when_check']
         current_check = datetime.now()
         delta = current_check - last_check
-        print(current_check, last_check, delta.seconds)
         if delta.seconds >= 60:
             session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).update(
                 {
@@ -192,12 +192,14 @@ def check(bot, update):
                 episode['episode_link'],
             )
             session.add(db_object)
+            sleep(1)
         session.commit()
     elif not spam:
         for episode in episodes_in_request:
             caption = conf.EPISODE_CAPTION.format(
                 episode['title_ru'], episode['season'], episode['tv_show_link'])
             bot.sendPhoto(chat_id=update.message.chat_id, photo=episode['jpg'], caption=caption)
+            sleep(1)
         bot.send_message(chat_id=update.message.chat_id, text=conf.AFTER_CHECK_TEXT)
     else:
         bot.send_message(
@@ -211,7 +213,7 @@ def spy(bot, update):
         reply_markup = main_menu_keyboard(user)
         bot.send_message(
             chat_id=update.message.chat_id,
-            text='Теперь бот будет автоматически будет уведомлять Вас о выходе новых эпизодов',
+            text='Теперь бот будет автоматически уведомлять Вас о выходе новых эпизодов',
             reply_markup=reply_markup,
         )
     else:
