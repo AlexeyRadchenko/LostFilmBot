@@ -192,14 +192,14 @@ def check(bot, update):
                 episode['episode_link'],
             )
             session.add(db_object)
-            sleep(1)
+            sleep(0.1)
         session.commit()
     elif not spam:
         for episode in episodes_in_request:
             caption = conf.EPISODE_CAPTION.format(
                 episode['title_ru'], episode['season'], episode['tv_show_link'])
             bot.sendPhoto(chat_id=update.message.chat_id, photo=episode['jpg'], caption=caption)
-            sleep(1)
+            sleep(0.1)
         bot.send_message(chat_id=update.message.chat_id, text=conf.AFTER_CHECK_TEXT)
     else:
         bot.send_message(

@@ -56,8 +56,9 @@ def main():
         updater.start_polling()
     else:
         updater.start_webhook(listen='127.0.0.1', port=5000, url_path=TOKEN)
-        updater.bot.set_webhook(webhook_url=WEB_HOOK_DOMAIN,
-                                certificate=open(CERT_PEM, 'rb'))
+        # certificate=open(CERT_PEM, 'rb')
+        updater.bot.set_webhook(url=WEB_HOOK_DOMAIN,
+                                certificate=None)
     updater.idle()
 
 if __name__ == '__main__':
