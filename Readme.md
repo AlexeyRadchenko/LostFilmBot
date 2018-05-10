@@ -24,9 +24,8 @@ CREATE DATABASE <data_base_name>;
 3. Create user for data base
 ```
 CREATE USER <user_name> WITH PASSWORD 'CREATESTRONGPASSS';
-ALTER ROLE crocusdb_user SET client_encoding TO 'utf8';
-ALTER ROLE crocusdb_user SET default_transaction_isolation TO 'read committed';
-ALTER ROLE crocusdb_user SET timezone TO 'UTC';
+ALTER ROLE <user_name> SET client_encoding TO 'utf8';
+ALTER ROLE <user_name> SET timezone TO 'GMT';
 GRANT ALL PRIVILEGES ON DATABASE <data_base_name> TO <user_name>;
 ```
 4. Install python requirements
