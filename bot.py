@@ -5,7 +5,7 @@ from telegram.ext import CommandHandler, RegexHandler
 from bot_commands import (start, bot_help, check,
                           spy, updater_task, settings,
                           timezone_set, silent_time, notifications_timer_on_off,
-                          set_notifications, sound_notifications_mute)
+                          set_notifications, sound_notifications_mute, bot_pay)
 
 
 def append_handlers(dispatcher, handlers_list):
@@ -32,7 +32,8 @@ def main():
         CommandHandler('settings', settings),
         CommandHandler('check', check),
         CommandHandler('spy', spy),
-        CommandHandler('sound', sound_notifications_mute)
+        CommandHandler('sound', sound_notifications_mute),
+        CommandHandler('bot_pay', bot_pay)
     ]
 
     regexp_command_handlers = [

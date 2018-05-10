@@ -206,6 +206,11 @@ def check(bot, update):
             chat_id=update.message.chat_id, text='Новинкок нет, проверте через 1 минуту')
 
 
+def bot_pay(bot, update):
+    url = 'https://yasobe.ru/na/domik_dlya_bota'
+    bot.send_message(chat_id=update.message.chat_id, text='Поддержать бота '+url)
+
+
 def spy(bot, update):
     user = session.query(UserProfile).filter(UserProfile.chat_id == update.message.chat_id).one_or_none()
     if not user.spy:
