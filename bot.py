@@ -1,4 +1,4 @@
-from conf import TOKEN, SOCKS5_ARGS, UPDATER_TASK_TIMER
+from conf import TOKEN, SOCKS5_ARGS, UPDATER_TASK_TIMER, DEBUG, WEB_HOOK_DOMAIN, CERT_PEM
 import logging
 from telegram.ext import Updater
 from telegram.ext import CommandHandler, RegexHandler
@@ -51,7 +51,13 @@ def main():
     append_handlers(dispatcher, regexp_command_handlers)
 
     tasks.run_repeating(updater_task, interval=UPDATER_TASK_TIMER, first=0)
-    updater.start_polling()
+
+    if DEBUG:
+        updater.start_polling()
+    else:
+        updater.start_webhook(listen='127.0.0.1', port=5000, url_path=TOKEN)
+        updater.bot.set_webhook(webhook_url=WEB_HOOK_DOMAIN,
+                                certificate=open(CERT_PEM, 'rb'))
     updater.idle()
 
 if __name__ == '__main__':
