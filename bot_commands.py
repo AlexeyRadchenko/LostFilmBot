@@ -232,18 +232,18 @@ def updater_task(bot, job):
     new_episodes = LostFilmParser().get_new_shows_episodes()
     updater_db_session = Session()
     episodes_in_db = updater_db_session.query(LastTVShow).all()
-    set_episodes_in_db = set([episode.__dict__['title_ru'] for episode in episodes_in_db])
-    set_all_new_episodes = set([episode['title_ru'] for episode in new_episodes])
+    set_episodes_in_db = set([(episode.__dict__['title_ru'], episode.__dict__['season']) for episode in episodes_in_db])
+    set_all_new_episodes = set([(episode['title_ru'], episode['season']) for episode in new_episodes])
     diff_set_old_episodes = set_episodes_in_db - set_all_new_episodes
     diff_set_new_episodes = set_all_new_episodes - set_episodes_in_db
     if diff_set_old_episodes:
         for old_episode in diff_set_old_episodes:
             for new_episode_title in diff_set_new_episodes:
-                new_episode = get_new_episode(new_episode_title, new_episodes)
+                new_episode = get_new_episode(new_episode_title[0], new_episodes)
                 caption = conf.EPISODE_CAPTION.format(
                     new_episode['title_ru'], new_episode['season'], new_episode['tv_show_link'])
                 user_list_send(bot, new_episode['jpg'], caption, updater_db_session)
-                updater_db_session.query(LastTVShow).filter(LastTVShow.title_ru == old_episode).\
+                updater_db_session.query(LastTVShow).filter(LastTVShow.title_ru == old_episode[0], LastTVShow.season == old_episode[1]).\
                     update({
                         'title_en': new_episode['title_en'],
                         'title_ru': new_episode['title_ru'],
